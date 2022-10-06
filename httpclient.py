@@ -33,7 +33,19 @@ class HTTPResponse(object):
         self.body = body
 
 class HTTPClient(object):
-    #def get_host_port(self,url):
+
+    def get_host_port(self,url):
+        # We initialize an empty list called "host_port" and then we parse the url to get the hostname and port number and store them in the list
+        # (host name first and then port number). We then return them both in the list 
+
+        host_port = ['127.0.0.1', 80]
+        url_host = urllib.parse.urlparse(url).hostname
+        url_port = urllib.parse.urlparse(url).port
+        if url_host != None:
+            host_port[0] = url_host
+        if url_port != None:
+            host_port[0] = url_port
+        return host_port
 
     def connect(self, host, port):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -41,12 +53,15 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
+        print(data)
         return None
 
     def get_headers(self,data):
+        print(data)
         return None
 
     def get_body(self, data):
+        print(data)
         return None
     
     def sendall(self, data):
@@ -70,11 +85,31 @@ class HTTPClient(object):
     def GET(self, url, args=None):
         code = 500
         body = ""
+
+        host_port = self.get_host_port(url)
+        host = host_port[0]
+        port = host_port[1]
+        self.connect(host, port)
+
+        payload = f'GET / HTTP/1.0\r\nHost: {host}\r\n\r\n'
+        self.sendall(payload)
+
+        request = self.recvall(self.socket)
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
+
+        host_port = self.get_host_port(url)
+        host = host_port[0]
+        port = host_port[1]
+        self.connect(host, port)
+
+        payload = f'GET / HTTP/1.0\r\nHost: {host}\r\n\r\n'
+        self.sendall(payload)
+
+        request = self.recvall(self.socket)
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -84,6 +119,7 @@ class HTTPClient(object):
             return self.GET( url, args )
     
 if __name__ == "__main__":
+    
     client = HTTPClient()
     command = "GET"
     if (len(sys.argv) <= 1):
