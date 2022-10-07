@@ -28,7 +28,7 @@ def help():
     print("httpclient.py [GET/POST] [URL]\n")
 
 class HTTPResponse(object):
-    def __init__(self, code=200, body=""):
+    def __init__(self, code=500, body=''):
         self.code = code
         self.body = body
 
@@ -41,10 +41,13 @@ class HTTPClient(object):
         host_port = ['127.0.0.1', 80]
         url_host = urllib.parse.urlparse(url).hostname
         url_port = urllib.parse.urlparse(url).port
+
         if url_host != None:
             host_port[0] = url_host
+            remote_ip = socket.gethostbyname(host_port[0])
+
         if url_port != None:
-            host_port[0] = url_port
+            host_port[1] = url_port
         return host_port
 
     def connect(self, host, port):
@@ -53,16 +56,19 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        print(data)
-        return None
+        response_list = data.split(" ")
+        code = int(response_list[1])
+        return code
 
     def get_headers(self,data):
-        print(data)
-        return None
+        response_list = data.split("\r\n\r\n")
+        header = response_list[0]
+        return header
 
     def get_body(self, data):
-        print(data)
-        return None
+        response_list = data.split("\r\n\r\n")
+        body = response_list[1]
+        return body
     
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
@@ -86,37 +92,65 @@ class HTTPClient(object):
         code = 500
         body = ""
 
-        host_port = self.get_host_port(url)
-        host = host_port[0]
-        port = host_port[1]
-        self.connect(host, port)
+        try:
+            host_port = self.get_host_port(url)
+            host = host_port[0]
+            port = host_port[1]
+            self.connect(host, port)
 
-        payload = f'GET / HTTP/1.0\r\nHost: {host}\r\n\r\n'
-        self.sendall(payload)
+            payload = f'GET / HTTP/1.1\r\nHost: {host}\r\n\r\n'
+            self.sendall(payload)
+            response = self.recvall(self.socket)
 
-        request = self.recvall(self.socket)
+            code = self.get_code(response)
+            body = self.get_body(response)
+            header = self.get_headers(response)
+
+        except Exception as e:
+            print(e)
+
+        finally:
+            #always close at the end!
+            self.close()
+
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
 
-        host_port = self.get_host_port(url)
-        host = host_port[0]
-        port = host_port[1]
-        self.connect(host, port)
+        try:
 
-        payload = f'GET / HTTP/1.0\r\nHost: {host}\r\n\r\n'
-        self.sendall(payload)
+            host_port = self.get_host_port(url)
+            host = host_port[0]
+            port = host_port[1]
+            self.connect(host, port)
 
-        request = self.recvall(self.socket)
+            payload = f'PUT / HTTP/1.1\r\nHost: {host}\r\n\r\n'
+            self.sendall(payload)
+
+            response = self.recvall(self.socket)
+
+            code = self.get_code(response)
+            body = self.get_body(response)
+            header = self.get_headers(response)
+
+        except Exception as e:
+            print(e)
+
+        finally:
+            #always close at the end!
+            self.close()
+
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
-            return self.POST( url, args )
+            result = self.POST(url, args)
+            return result
         else:
-            return self.GET( url, args )
+            result = self.GET(url, args)
+            return result
     
 if __name__ == "__main__":
     
