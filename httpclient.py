@@ -45,9 +45,11 @@ class HTTPClient(object):
         if url_host != None:
             host_port[0] = url_host
             remote_ip = socket.gethostbyname(host_port[0])
+            host_port[0] = remote_ip
 
         if url_port != None:
             host_port[1] = url_port
+
         return host_port
 
     def connect(self, host, port):
@@ -96,15 +98,24 @@ class HTTPClient(object):
             host_port = self.get_host_port(url)
             host = host_port[0]
             port = host_port[1]
-            self.connect(host, port)
+            self.connect(host, port) 
 
-            payload = f'GET / HTTP/1.1\r\nHost: {host}\r\n\r\n'
+            full_url = url
+            content_type = ""
+            content_len = 0
+
+            if args != None:
+                params = urllib.parse.urlencode(args)
+                content_type = "application/x-www-form-urlencoded"
+                content_len = len(params)
+                full_url += "?" + params
+
+            payload = f'GET /{full_url} HTTP/1.1\r\nHost: {host}\r\nContent-type: {content_type}\r\nContent-length: {content_len}\r\n\r\n'
             self.sendall(payload)
             response = self.recvall(self.socket)
 
             code = self.get_code(response)
             body = self.get_body(response)
-            header = self.get_headers(response)
 
         except Exception as e:
             print(e)
@@ -120,20 +131,31 @@ class HTTPClient(object):
         body = ""
 
         try:
-
             host_port = self.get_host_port(url)
             host = host_port[0]
             port = host_port[1]
             self.connect(host, port)
 
-            payload = f'PUT / HTTP/1.1\r\nHost: {host}\r\n\r\n'
+            full_url = url
+            content_type = ""
+            content_len = 0
+            params = ""
+
+            if args != None:
+                params = urllib.parse.urlencode(args)
+                content_type = "application/x-www-form-urlencoded"
+                content_len = len(params)
+                full_url += "?" + params
+                body = str(args) + '\r\n\r\n'
+
+            payload = f'POST /{full_url} HTTP/1.1\r\nHost: {host}\r\nContent-type: {content_type}\r\nContent-length: {content_len}\r\n\r\n{params}'
+            print(payload)
             self.sendall(payload)
 
             response = self.recvall(self.socket)
 
             code = self.get_code(response)
             body = self.get_body(response)
-            header = self.get_headers(response)
 
         except Exception as e:
             print(e)
