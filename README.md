@@ -12,8 +12,13 @@ Contributors / Licensing
 
 http.py contains advice/collaboration from:
 
-
-http.py contains code from:
+- beomyoon: Help fix bug involving Get url withy Query but no Params (issue sending url instead of path)
+- rmo1: Help me understand the basics of the assignment, the idea of urlencode and bug involving POST request 
+  not being accepted (issue was sending POST without headers)
+- landberg: Help me with issue with Get request (issues with headers), tips on how to handle params with POST
+  requests, helped issue with hanging/freezing on one test function.
+- archit2: Helped me understand the basics of the assignment, gave suggestions on how to split response and tips
+  on dealing with queries
 
 Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle, 
 https://github.com/tywtyw2002, and https://github.com/treedust

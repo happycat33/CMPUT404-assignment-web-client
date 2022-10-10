@@ -34,14 +34,9 @@ class HTTPResponse(object):
 
 class HTTPClient(object):
 
-    def check_query(self,url):
-        query = ''
-        query = urllib.parse.urlparse(url).query
-        return query
-
     def get_host_port(self,url):
-        # We initialize an empty list called "host_port" and then we parse the url to get the hostname and port number and store them in the list
-        # (host name first and then port number). We then return them both in the list 
+        # We initialize an empty list called "host_port" and then we parse the url to get the hostname and port number and 
+        # store them in the list (host name first and then port number). We then return them both in the list 
 
         host_port = ['127.0.0.1', 80]
         url_host = urllib.parse.urlparse(url).hostname
@@ -61,16 +56,25 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
+        # To get the code, the function takes in a HTTP response and splits the data by a space. This gives a list of all 
+        # the seperate items of the response. We then take the int of the second item in the list (which is the status code)
+
         response_list = data.split(" ")
         code = int(response_list[1])
         return code
 
     def get_headers(self,data):
+        # To get the code, the function takes in a HTTP response and splits the data by \r\n\r\n. This seperates the header 
+        # and the body, we then take the first item in the split list (which is the header) and return it. 
+
         response_list = data.split("\r\n\r\n")
         header = response_list[0]
         return header
 
     def get_body(self, data):
+        # To get the code, the function takes in a HTTP response and splits the data by \r\n\r\n. This seperates the header
+        # and the body, we then take the second item in the split list (which is the body) and return it.
+
         response_list = data.split("\r\n\r\n")
         body = response_list[1]
         return body
@@ -94,26 +98,47 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        code = 500
-        body = ""
+        # When given the GET command, we first set a basic code and body, then we get the host and port number 
+        # (using get_host_port function) and then connect to a socket. Once we are connect, we find the path given
+        # in the url (by parsing). We then set up the GET payload and put in the request and the headers and send it
+        # to the socket. Once we send it, we receive the response and close the socket. From the given response, we then
+        # call the corresponding functions to get the code and body and return in the form of a HTTP response.
 
-        host_port = self.get_host_port(url)
-        host = host_port[0]
-        port = host_port[1]
-        self.connect(host, port) 
+        try: 
+            code = 500
+            body = ""
 
-        path = '/' + urllib.parse.urlparse(url).path
-        payload = f'GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n'
-        self.sendall(payload)
-        response = self.recvall(self.socket)
-        
-        self.close()
-        code = self.get_code(response)
-        body = self.get_body(response)
+            host_port = self.get_host_port(url)
+            host = host_port[0]
+            port = host_port[1]
+            self.connect(host, port) 
+
+            path = urllib.parse.urlparse(url).path
+
+            payload = f'GET /{path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n'
+            self.sendall(payload)
+            response = self.recvall(self.socket)
+            
+        except Exception as e:
+            print(e)
+
+        finally:
+            #always close at the end!
+            self.close()
+            code = self.get_code(response)
+            body = self.get_body(response)
 
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
+        # When given the POST command, we first set a basic code and body, then we get the host and port number
+        # (using get_host_port function) and then connect to a socket. Once we are connect, we set an empty params,
+        # content_type and content_len header. Then we find the path given in the url (by parsing) and if we are given
+        # any params we then encode them, set the content_type and the content length and add it to the body variable. 
+        # We then set up the POST payload and put in the request, headers, body and send it to the socket. Once we send 
+        # it, we receive the response and close the socket. From the given response, we then call the corresponding 
+        # functions to get the code and body and return in the form of a HTTP response.
+
         code = 500
         body = ""
 
@@ -136,13 +161,9 @@ class HTTPClient(object):
                 body = str(args) + '\r\n\r\n'
 
             payload = f'POST /{path} HTTP/1.1\r\nHost: {host}\r\nContent-type: {content_type}\r\nContent-length: {content_len}\r\n\r\n{params}'
-            print(payload)
             self.sendall(payload)
 
             response = self.recvall(self.socket)
-
-            code = self.get_code(response)
-            body = self.get_body(response)
 
         except Exception as e:
             print(e)
@@ -150,6 +171,8 @@ class HTTPClient(object):
         finally:
             #always close at the end!
             self.close()
+            code = self.get_code(response)
+            body = self.get_body(response)
 
         return HTTPResponse(code, body)
 
