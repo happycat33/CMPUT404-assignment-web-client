@@ -34,6 +34,11 @@ class HTTPResponse(object):
 
 class HTTPClient(object):
 
+    def check_query(self,url):
+        query = ''
+        query = urllib.parse.urlparse(url).query
+        return query
+
     def get_host_port(self,url):
         # We initialize an empty list called "host_port" and then we parse the url to get the hostname and port number and store them in the list
         # (host name first and then port number). We then return them both in the list 
@@ -44,8 +49,6 @@ class HTTPClient(object):
 
         if url_host != None:
             host_port[0] = url_host
-            remote_ip = socket.gethostbyname(host_port[0])
-            host_port[0] = remote_ip
 
         if url_port != None:
             host_port[1] = url_port
@@ -94,35 +97,19 @@ class HTTPClient(object):
         code = 500
         body = ""
 
-        try:
-            host_port = self.get_host_port(url)
-            host = host_port[0]
-            port = host_port[1]
-            self.connect(host, port) 
+        host_port = self.get_host_port(url)
+        host = host_port[0]
+        port = host_port[1]
+        self.connect(host, port) 
 
-            full_url = url
-            content_type = ""
-            content_len = 0
-
-            if args != None:
-                params = urllib.parse.urlencode(args)
-                content_type = "application/x-www-form-urlencoded"
-                content_len = len(params)
-                full_url += "?" + params
-
-            payload = f'GET /{full_url} HTTP/1.1\r\nHost: {host}\r\nContent-type: {content_type}\r\nContent-length: {content_len}\r\n\r\n'
-            self.sendall(payload)
-            response = self.recvall(self.socket)
-
-            code = self.get_code(response)
-            body = self.get_body(response)
-
-        except Exception as e:
-            print(e)
-
-        finally:
-            #always close at the end!
-            self.close()
+        path = '/' + urllib.parse.urlparse(url).path
+        payload = f'GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n'
+        self.sendall(payload)
+        response = self.recvall(self.socket)
+        
+        self.close()
+        code = self.get_code(response)
+        body = self.get_body(response)
 
         return HTTPResponse(code, body)
 
@@ -136,19 +123,19 @@ class HTTPClient(object):
             port = host_port[1]
             self.connect(host, port)
 
-            full_url = url
+            params = ''
             content_type = ""
             content_len = 0
-            params = ""
 
-            if args != None:
+            path = urllib.parse.urlparse(url).path
+
+            if args:
                 params = urllib.parse.urlencode(args)
                 content_type = "application/x-www-form-urlencoded"
                 content_len = len(params)
-                full_url += "?" + params
                 body = str(args) + '\r\n\r\n'
 
-            payload = f'POST /{full_url} HTTP/1.1\r\nHost: {host}\r\nContent-type: {content_type}\r\nContent-length: {content_len}\r\n\r\n{params}'
+            payload = f'POST /{path} HTTP/1.1\r\nHost: {host}\r\nContent-type: {content_type}\r\nContent-length: {content_len}\r\n\r\n{params}'
             print(payload)
             self.sendall(payload)
 
