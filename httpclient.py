@@ -100,9 +100,10 @@ class HTTPClient(object):
     def GET(self, url, args=None):
         # When given the GET command, we first set a basic code and body, then we get the host and port number 
         # (using get_host_port function) and then connect to a socket. Once we are connect, we find the path given
-        # in the url (by parsing). We then set up the GET payload and put in the request and the headers and send it
-        # to the socket. Once we send it, we receive the response and close the socket. From the given response, we then
-        # call the corresponding functions to get the code and body and return in the form of a HTTP response.
+        # in the url (by parsing) and if we are given any queries or parameters, we add those to the path. We then set 
+        # up the GET payload and put in the request and the headers and send it to the socket. Once we send it, we receive 
+        # the response and close the socket. From the given response, we then call the corresponding functions to get the 
+        # code and body and return in the form of a HTTP response.
 
         try: 
             code = 500
@@ -113,7 +114,14 @@ class HTTPClient(object):
             port = host_port[1]
             self.connect(host, port) 
 
-            path = urllib.parse.urlparse(url).path
+            parsed_url = urllib.parse.urlparse(url)
+            path = parsed_url.path
+
+            if parsed_url.params:
+                path += ";" + parsed_url.params
+
+            if parsed_url.query:
+                path += "?" + parsed_url.query
 
             payload = f'GET /{path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n'
             self.sendall(payload)
@@ -152,13 +160,13 @@ class HTTPClient(object):
             content_type = ""
             content_len = 0
 
-            path = urllib.parse.urlparse(url).path
+            parsed_url = urllib.parse.urlparse(url)
+            path = parsed_url.path
 
             if args:
                 params = urllib.parse.urlencode(args)
                 content_type = "application/x-www-form-urlencoded"
                 content_len = len(params)
-                body = str(args) + '\r\n\r\n'
 
             payload = f'POST /{path} HTTP/1.1\r\nHost: {host}\r\nContent-type: {content_type}\r\nContent-length: {content_len}\r\n\r\n{params}'
             self.sendall(payload)
