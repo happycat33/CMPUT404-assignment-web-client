@@ -153,6 +153,8 @@ class TestHTTPClient(unittest.TestCase):
             print(e)
             print("run_server: Thread died")
 
+
+
     def test404GET(self):
         '''Test against 404 errors'''
         MyHTTPHandler.get = nothing_available
@@ -167,7 +169,6 @@ class TestHTTPClient(unittest.TestCase):
         http = httpclass.HTTPClient()
         req = http.POST("http://%s:%d/49872398432" % (BASEHOST,BASEPORT) )
         self.assertTrue(req != None, "None Returned!")
-        print(req.code)
         self.assertTrue(req.code == 404)
 
     def testGET(self):
@@ -202,8 +203,10 @@ class TestHTTPClient(unittest.TestCase):
         req = http.POST( url )
         self.assertTrue(req != None, "None Returned!")
         self.assertTrue(req.code == 200,"Code is %s but I wanted a 200 OK" % req.code)
+
         
-    # # consider disabling this test until everything else works
+        
+    # consider disabling this test until everything else works
     def testInternetGets(self):
         '''Test HTTP Get in the wild, these webservers are far less
            forgiving'''
@@ -273,3 +276,4 @@ def test_test_webserver():
 
 if __name__ == '__main__':
     unittest.main()
+

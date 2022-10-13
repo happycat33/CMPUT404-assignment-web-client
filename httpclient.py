@@ -98,12 +98,12 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        # When given the GET command, we first set a basic code and body, then we get the host and port number 
+        # When given the GET command, we first try and set a basic code and body, then we get the host and port number 
         # (using get_host_port function) and then connect to a socket. Once we are connect, we find the path given
         # in the url (by parsing) and if we are given any queries or parameters, we add those to the path. We then set 
         # up the GET payload and put in the request and the headers and send it to the socket. Once we send it, we receive 
-        # the response and close the socket. From the given response, we then call the corresponding functions to get the 
-        # code and body and return in the form of a HTTP response.
+        # the response and close the socket. If anything fails then the try catch will print an exception. If it succeeds, then
+        # we then call the corresponding functions to get the code and body and return in the form of a HTTP response. 
 
         try: 
             code = 500
@@ -117,13 +117,20 @@ class HTTPClient(object):
             parsed_url = urllib.parse.urlparse(url)
             path = parsed_url.path
 
+            # suggested by landberg (rather than adding an extra /, just check if path is empty, is so then add it to empty path)
+            if not path:
+                path = '/'
+
+            
+            # suggested by landberg & hassnai1 (since users might want to get a certain body, we need to add params and queries 
+            # to our GET request)
             if parsed_url.params:
                 path += ";" + parsed_url.params
 
             if parsed_url.query:
                 path += "?" + parsed_url.query
 
-            payload = f'GET /{path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n'
+            payload = f'GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n'
             self.sendall(payload)
             response = self.recvall(self.socket)
             
@@ -144,8 +151,9 @@ class HTTPClient(object):
         # content_type and content_len header. Then we find the path given in the url (by parsing) and if we are given
         # any params we then encode them, set the content_type and the content length and add it to the body variable. 
         # We then set up the POST payload and put in the request, headers, body and send it to the socket. Once we send 
-        # it, we receive the response and close the socket. From the given response, we then call the corresponding 
-        # functions to get the code and body and return in the form of a HTTP response.
+        # it, we receive the response and close the socket.If anything fails then the try catch will print an exception. 
+        # If it succeeds, then we then call the corresponding functions to get the code and body and return in the form 
+        # of a HTTP response. 
 
         code = 500
         body = ""
@@ -163,12 +171,15 @@ class HTTPClient(object):
             parsed_url = urllib.parse.urlparse(url)
             path = parsed_url.path
 
+            if not path:
+                path = '/'
+
             if args:
                 params = urllib.parse.urlencode(args)
                 content_type = "application/x-www-form-urlencoded"
                 content_len = len(params)
 
-            payload = f'POST /{path} HTTP/1.1\r\nHost: {host}\r\nContent-type: {content_type}\r\nContent-length: {content_len}\r\n\r\n{params}'
+            payload = f'POST {path} HTTP/1.1\r\nHost: {host}\r\nContent-type: {content_type}\r\nContent-length: {content_len}\r\n\r\n{params}'
             self.sendall(payload)
 
             response = self.recvall(self.socket)
