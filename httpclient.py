@@ -121,15 +121,6 @@ class HTTPClient(object):
             if not path:
                 path = '/'
 
-            
-            # suggested by landberg & hassnai1 (since users might want to get a certain body, we need to add params and queries 
-            # to our GET request)
-            if parsed_url.params:
-                path += ";" + parsed_url.params
-
-            if parsed_url.query:
-                path += "?" + parsed_url.query
-
             payload = f'GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n'
             self.sendall(payload)
             response = self.recvall(self.socket)

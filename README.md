@@ -17,7 +17,7 @@ httpclient.py contains advice/collaboration from:
   not being accepted (issue was sending POST without headers)
 - landberg: Help me with issue with Get request (issues with headers), tips on how to handle params with POST
   requests, helped issue with hanging/freezing on one test function. Gave suggestions for the GET request (how
-  to deal with empty path and suggested i add queries and param checks to my path)
+  to deal with empty path).
 - archit2: Helped me understand the basics of the assignment, gave suggestions on how to split response and tips
   on dealing with queries
 - hassnai1: Helped understand issues involving virtualhosting, extra imports and functions and helped understand
