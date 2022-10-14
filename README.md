@@ -25,8 +25,8 @@ httpclient.py contains advice/collaboration from:
 
 httpclient.py contains code from:
 
--https://stackoverflow.com/questions/20901768/how-to-encode-a-string-for-url-param-in-python (how to encode a querystring,
- taken from second and third answer)
+- https://stackoverflow.com/questions/20901768/how-to-encode-a-string-for-url-param-in-python (how to encode a querystring,
+  taken from second and third answer)
 
 Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle, 
 https://github.com/tywtyw2002, and https://github.com/treedust
