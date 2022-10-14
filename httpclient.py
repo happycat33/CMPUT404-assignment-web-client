@@ -121,10 +121,6 @@ class HTTPClient(object):
             if not path:
                 path = '/'
 
-            if args:
-                params = urllib.parse.urlencode(args)
-                path += "?" + params
-
             payload = f'GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n'
             self.sendall(payload)
             response = self.recvall(self.socket)
